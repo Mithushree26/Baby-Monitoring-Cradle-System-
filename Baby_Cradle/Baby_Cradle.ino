@@ -1,7 +1,7 @@
 //Baby Monitoring Cradle System
 //#define CAYENNE_DEBUG
-//#define CAYENNE_PRINT Serial
-//#include <CayenneMQTTESP8266.h>
+#define CAYENNE_PRINT Serial
+#include <CayenneMQTTESP8266Shield.h>
 #include "DHT.h"
 #include "Servo.h"
 
@@ -26,17 +26,28 @@
 
 
 // WiFi network info.
-char ssid[] = "ssid";
-char wifiPassword[] = "wifiPassword";
+char ssid[] = "Ranganath";
+char wifiPassword[] = "Tiptur@25373";
 
 // Cayenne authentication info. This should be obtained from the Cayenne Dashboard.
-char username[] = "MQTT_USERNAME";
-char password[] = "MQTT_PASSWORD";
-char clientID[] = "CLIENT_ID";
+char username[] = "daf90710-e657-11ed-9ab8-d511caccfe8c";
+char password[] = "d036a456c510c8bcfc9db0b52be7c6ac1329e805";
+char clientID[] = "6f7c5470-e737-11ed-8485-5b7d3ef089d0";
 
 int isWaterDetected();
 
+//Need to Change Acordingly based on your Requirement
+int speedConstant =  1; 
+
+
+int speedRPM = 100;
+
 unsigned long lastMillis = 0;
+
+// Set ESP8266 Serial object. In this example we use the Serial1 hardware serial which is available on boards like the Arduino Mega.
+#define EspSerial Serial
+
+ESP8266 wifi(&EspSerial);
 
 
 
@@ -46,8 +57,11 @@ Servo myCradle;
 
 void setup() {
  Serial.begin(9600);
+ delay(10);
+ EspSerial.begin(115200);
  dht.begin();
-//  Cayenne.begin(username, password, clientID, ssid, wifiPassword);
+ Cayenne.begin(username, password, clientID, wifi, ssid, wifiPassword);
+
 
 //  Input Pin Setup
   pinMode(waterSensor,INPUT);
@@ -68,7 +82,7 @@ void setup() {
 }
 
 void loop() {
-//  Cayenne.loop();
+  Cayenne.loop();
   int k = isWaterDetected();
   if(k){
     digitalWrite(waterFlag ,HIGH);
@@ -79,13 +93,16 @@ void loop() {
 
   //Ready a pulse and sending to Dashboard
    float pulseData = analogRead(pulseSensor);
-   displayToDashboard (1, pulseData);
+    Cayenne.virtualWrite(1,pulseData);
 
    float h = dht.readHumidity();
-   displayToDashboard (2, h);
+   Cayenne.virtualWrite(2,h,TYPE_RELATIVE_HUMIDITY,UNIT_PERCENT);
 
    float t = dht.readTemperature();
-   displayToDashboard (3, t);
+   Cayenne.celsiusWrite(3, t);
+   
+    
+   
    if (t >=32){
     digitalWrite(dcMotor,HIGH);
     }
@@ -95,7 +112,7 @@ void loop() {
 
     float soundData = analogRead(soundSensor); 
     if (soundData  > 800){
-      int speedVar  = 1000;
+      int speedVar  = speedConstant*speedRPM;
       moveCradle(speedVar);
       playMusic();
       turnOffLamp();
@@ -110,19 +127,13 @@ void loop() {
 int isWaterDetected(){
   // Sending Sensor Data to cayenne 
   int waterDetect = digitalRead(waterSensor);
-//  Cayenne.virtualWrite(0,waterDetect);
+  Cayenne.virtualWrite(0,waterDetect);
   if(waterDetect == 1 || waterDetect == HIGH){
     return 1;
     }
     return 0;
 }
 
-
-void displayToDashboard (int channel ,float Input){
-//   Cayenne.virtualWrite(channel ,Input);
-   return;
-  
-}
 
 
 void moveCradle(int speed){
@@ -160,4 +171,11 @@ void turnOffLamp() {
   digitalWrite(bulb,LOW);
   return;
  
+}
+
+CAYENNE_IN(5)
+{
+  int value = getValue.asInt(); // 0 to 255
+  speedRPM = value;
+
 }
