@@ -39,7 +39,6 @@ int isWaterDetected();
 //Need to Change Acordingly based on your Requirement
 int speedConstant =  1; 
 
-
 int speedRPM = 100;
 
 unsigned long lastMillis = 0;
@@ -85,10 +84,10 @@ void loop() {
   Cayenne.loop();
   int k = isWaterDetected();
   if(k){
-    digitalWrite(waterFlag ,HIGH);
+    digitalWrite(buzzer ,HIGH);
   }
   else{
-    digitalWrite(waterFlag ,LOW);
+    digitalWrite(buzzer,LOW);
     }
 
   //Ready a pulse and sending to Dashboard
@@ -114,12 +113,12 @@ void loop() {
     if (soundData  > 800){
       int speedVar  = speedConstant*speedRPM;
       moveCradle(speedVar);
-      playMusic();
+//      playMusic();
       turnOffLamp();
     }
     else {
       stopCradle();
-      stopMusic();
+//      stopMusic();
       turnOnLamp();
     }
 }
@@ -144,17 +143,17 @@ void moveCradle(int speed){
   return;
   }
 
-void playMusic(){
-  digitalWrite(buzzer,HIGH);
-  return;
- 
-}
+//void playMusic(){
+//  digitalWrite(buzzer,HIGH);
+//  return;
+// 
+//}
 
-void stopMusic(){
-  digitalWrite(buzzer,LOW);
-  return;
-
-}
+//void stopMusic(){
+//  digitalWrite(buzzer,LOW);
+//  return;
+//
+//}
 
 void stopCradle(){
  myCradle.write(90);
